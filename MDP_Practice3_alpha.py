@@ -5,6 +5,14 @@ Ls, Ld = 1, 0.59
 타우 = 1
 '''
 
+
+# 셀룰러, 와이파이의 상태에 따른 데이터 갯수?
+STATES = [[0 for _ in range(5)] for _ in range(2)]
+# SAS의 행동
+acations = ['push', 'egg']
+# 모드
+t = ['celluar', 'wifi']
+
 def P1(n, n2, a) : # SAS가 집약할지, 전송할지의 확률 반환
     if n < limit and a == 'agg ':
         if n2 == n + 1 :
@@ -30,30 +38,32 @@ def P2(t, t2) : # 데이터 모드 바뀌는 확률 반환
         
 # P = p1() * p2()
 
-# def r(s, a) : # 보상함수
-#     return 0.4 * f(s, a) - (1 - 0.4) * g(s, a)
-        
-# def f(s, a, m, n) : # 보상함수, 모드와 데이터의 갯수 담고 있음
-#     if m == 'wifi' :
-#         return 1 * (1 + n * 0.59)
+# 보상 함수
+def reword(s, a, m, n) : # 현재상태?, 액션(푸쉬 에그), 모드(와이파이, 셀룰러), 데이터 갯수
+    return 0.4 * f(s, a, m, n) - (1 - 0.4) * g(a, n)
 
-#     elif m == 'cellualr' :
-#         return 1.5 * (1 + n * 0.59)
-    
-# def g(s, a, n) :
-#     if a == 'agg' :
-#         return n
+def f(s, a, m, n) :
+    if a == 'agg' :
+        if m == 'wifi' :
+            return 1 * (1 + n * 0.59)
+        elif m == 'cellualr' :
+            return 1.5 * (1 + n * 0.59)
+    else :
+        return 0
 
-def reword(s, a) :
-    return 0.4 
-    
-v(s) = max()
+def g(a, n) :
+    if a == 'agg' :
+        return n
+    else :
+        return 0
 
-# reword(현재 상태, 현재 데이터 갯수?)
-limit = 5
-STATES = [[0 for _ in range(5)] for _ in range(2)]
-acations = ['push', 'egg']
-t = ['celluar', 'wifi']
+
+
+
+
+
+
+
 
 def iteration(states, actions, r, gamma = 0.9, limit = 0.001) :
     v = np.zeros(size * size) # 각 상태들의 가치
