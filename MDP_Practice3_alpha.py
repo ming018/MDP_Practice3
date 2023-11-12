@@ -72,32 +72,34 @@ def change1(s, a) :
 import numpy as np
 
 def iteration(states, actions, r, gamma = 0.9, limit = 0.001) :
-    v = np.zeros((len(t), len(states))) # 각 상태들의 가치 담을 배열?
-    policy = np.zeros((len(states), len(t))) # 각 상태들의 최적 정책
+    v = np.zeros((len(t), len(states[0]))) # 각 상태들의 가치 담을 배열?
+    policy = np.zeros((len(t), len(states[0]))) # 각 상태들의 최적 정책
 
-    # while True :
-    #     delta = 0 # 상태의 가치가 얼마나 변하는가를 담음
-    for s in states :
-        temp_v = v[s] # 현재 상태의 밸류를 임시 저장
+    while True :
+        delta = 0 # 상태의 가치가 얼마나 변하는가를 담음
+        for s in states :
+            temp_v = v[s] # 현재 상태의 밸류를 임시 저장
 
-        check = []
-        for a in actions :
-            tmp1 = r[move(s, a)]
-            tmp2 = gamma * move(s,a) * propagate_ratio
-            check.append(tmp1 + tmp2)
-        v[s] = max(check)
-            # v[s] = max([r[move(s, a)] + gamma * move(s, a) * propagate_ratio] for a in actions)
+            check = []
+            for a in actions :
+                # tmp1 = r[move(s, a)]
+                # tmp2 = gamma * move(s,a) * propagate_ratio
 
-        delta = max(delta, abs(temp_v - v[s]))
+                tmp1 = 
+                check.append(tmp1 + tmp2)
+            v[s] = max(check)
+                # v[s] = max([r[move(s, a)] + gamma * move(s, a) * propagate_ratio] for a in actions)
+
+            delta = max(delta, abs(temp_v - v[s]))
 
 
-        # 기존의 가치 - 새로 갱신한 가치의값과 기존의 델타 값 중 뭐가 더 큰지를 비교
-        if delta < limit :
-            break
-        # 정의한 임계값보다 낮으면 더이상 변해도 의미가 없는 수렴 상태라고 판단 후 종료
-    
-        for s in states:  # 모든 상태에 대해 반복
-        # 최적의 행동을 선택하는 정책 계산
-            policy[s] = np.argmax([r[move(s, a)] + gamma * v[move(s, a)] for a in actions])
-    
-    return policy, v  # 최적 정책과 가치 함수 반환
+            # 기존의 가치 - 새로 갱신한 가치의값과 기존의 델타 값 중 뭐가 더 큰지를 비교
+            if delta < limit :
+                break
+            # 정의한 임계값보다 낮으면 더이상 변해도 의미가 없는 수렴 상태라고 판단 후 종료
+        
+            for s in states:  # 모든 상태에 대해 반복
+            # 최적의 행동을 선택하는 정책 계산
+                policy[s] = np.argmax([r[move(s, a)] + gamma * v[move(s, a)] for a in actions])
+        
+        return policy, v  # 최적 정책과 가치 함수 반환
