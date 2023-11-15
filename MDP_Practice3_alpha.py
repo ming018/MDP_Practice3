@@ -6,10 +6,13 @@ Ls, Ld = 1, 0.59
 '''
 
 
+import numpy as np
+
 # 셀룰러, 와이파이의 상태에 따른 데이터 갯수?
 states = [[0 for _ in range(3)] for _ in range(2)] # 원래 3 * 2 되있던거 일단 3만 해봄
 # SAS의 행동
 action = [0, 1] # 0 : egg, 1 : push
+field = np.empty((len(states), len(states[0])))
 # 모드
 t = [0, 1] # 0 : cellular, 1 : wifi
 
@@ -44,6 +47,14 @@ def P2(t, t2) : # 데이터 모드 바뀌는 확률 반환
         
 # P = p1() * p2()
 
+def setreword() :
+    for i in range(len(field)) :
+        for k in range(len(field[0])) :
+            array = []
+            for a in action :
+                array.append(reword(k, a, i))
+            field[i][k] = max(array)
+
 # 보상 함수
 def reword(s, a, t) : # 현재상태?, 액션(에그, 푸쉬), 모드(셀룰러, 와이파이)
     tem1 = f(s, a, t)
@@ -65,41 +76,9 @@ def g(s, a) :
     else :
         return 0
     
-def change1(s, a) :
-    if a == 0 : # egg
-        print()
+# def P(n, a, n2, t, t2)
+print(P(0, 1, 0, 0, 0))
+print(P(0, 1, 1, 0, 0))
+print(P(0, 1, 0, 0, 1))
+print(P(0, 1, 1, 0, 1))
 
-import numpy as np
-
-def iteration(states, actions, r, gamma = 0.9, limit = 0.001) :
-    v = np.zeros((len(t), len(states[0]))) # 각 상태들의 가치 담을 배열?
-    policy = np.zeros((len(t), len(states[0]))) # 각 상태들의 최적 정책
-
-    while True :
-        delta = 0 # 상태의 가치가 얼마나 변하는가를 담음
-        for s in states :
-            temp_v = v[s] # 현재 상태의 밸류를 임시 저장
-
-            check = []
-            for a in actions :
-                # tmp1 = r[move(s, a)]
-                # tmp2 = gamma * move(s,a) * propagate_ratio
-
-                tmp1 = 
-                check.append(tmp1 + tmp2)
-            v[s] = max(check)
-                # v[s] = max([r[move(s, a)] + gamma * move(s, a) * propagate_ratio] for a in actions)
-
-            delta = max(delta, abs(temp_v - v[s]))
-
-
-            # 기존의 가치 - 새로 갱신한 가치의값과 기존의 델타 값 중 뭐가 더 큰지를 비교
-            if delta < limit :
-                break
-            # 정의한 임계값보다 낮으면 더이상 변해도 의미가 없는 수렴 상태라고 판단 후 종료
-        
-            for s in states:  # 모든 상태에 대해 반복
-            # 최적의 행동을 선택하는 정책 계산
-                policy[s] = np.argmax([r[move(s, a)] + gamma * v[move(s, a)] for a in actions])
-        
-        return policy, v  # 최적 정책과 가치 함수 반환
