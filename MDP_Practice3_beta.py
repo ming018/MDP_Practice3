@@ -5,10 +5,11 @@ Ls, Ld = 1, 0.59
 타우 = 1
 '''
 
-w = 0.4
-wc = 1.5
-ww = 1
+w = 0.4 # 비중변수(전송비용, 사용자qoe 비중 계산)
+wc = 1.5 # 네트워크 유형, 셀룰러일때
+ww = 1 # 네트워크 유형, 와이파이 일때
 lamu = 0.1
+lama = 0.1
 mc = 0.1
 mw = 0.5
 ls = 1
@@ -23,7 +24,7 @@ action = [0, 1] # 0 : egg, 1 : push
 t = [0, 1] # 0 : cellular, 1 : wifi
 
 
-n = 5 # 최대 담을 수 있는 데이터의 갯수
+n = 3 # 최대 담을 수 있는 데이터의 갯수
 # 셀룰러, 와이파이의 상태에 따른 데이터 갯수?
 states = [[0 for _ in range(n)] for _ in range(len(t))]
 
@@ -45,9 +46,9 @@ def P1(n_, n, a) :
             
         elif a == 1 :
             if n_ == 0 :
-                return 1
-            else :
                 return 0
+            else :
+                return 1
         
         else :
             return 0
@@ -133,7 +134,7 @@ def showP() : # 출력용 함수
         print('---')
 
 
-def s(s, a, t) : # 보상 함수
+def reward(s, a, t) : # 보상 함수
     return w * f(s, a, t) - (1 - w) * g(s, a)
 
 def f(n, a, t) :
@@ -158,55 +159,159 @@ def iteration(gamma=0.9, limit=0.001):
     v = np.zeros(num_states)  # 각 상태의 가치를 저장할 배열을 초기화합니다.
     policy = np.zeros(num_states)  # 각 상태에 대한 최적 정책을 저장할 배열을 초기화합니다.
 
-    def get_index(state, t_state):  # 2차원 상태를 1차원 인덱스로 변환하는 함수입니다.
-        return state * len(t) + t_state
+    i = 0
 
-    delta = limit  # 변화량을 초기화합니다. 이 값은 가치의 변화가 얼마나 되었는지 추적합니다.
-    while delta >= limit:
-        delta = 0
-        for state in range(n):  # 모든 상태에 대해 반복합니다.
+    while True :
+        print('v[0]진행중')
+        print(i, '번째 반복')
+  
+        temp = v[0]
+        
+        egging = []
 
-            for t_state in range(len(t)):  # 모든 통신 타입에 대해 반복합니다.
-                idx = get_index(state, t_state)  # 현재 상태와 통신 타입을 1차원 인덱스로 변환합니다.
+        egging.append(reward(0, 0, 0) + (1 - lama) * P(0, 0, 0, 0, 0) * v[0]) # egg, c, n` = n
+        egging.append(reward(0, 0, 0) + (1 - lama) * P(1, 0, 0, 0, 0) * v[1]) # egg, c, n` = n + 1
+        egging.append(reward(0, 0, 0) + (1 - lama) * P(0, 0, 0, 1, 0) * v[0 + (num_states // 2)]) # egg, w, n` = n
+        egging.append(reward(0, 0, 0) + (1 - lama) * P(1, 0, 0, 1, 0) * v[0 + (num_states // 2 + 1)]) # egg, w, n` = n + 1
 
-                v_old = v[idx]  # 현재 상태의 이전 가치를 저장합니다.
-                v_new = 0
+        pushing = []
+        pushing.append(reward(0, 1, 0) + (1 - lama) * P(0, 0, 1, 0, 0) * v[0]) # push, c, n` = n = 0
+        pushing.append(reward(0, 1, 0) + (1 - lama) * P(0, 0, 1, 1, 0) * v[0 + (num_states // 2)]) # push, w, n` = n = 0
+        
+        check = []
+        check.append(sum(egging)/len(egging))
+        check.append(sum(pushing) / len(pushing))
 
-                for a in action:  # 가능한 모든 행동에 대해 반복합니다.
-                    expected_value = 0  # 행동의 기대 가치를 계산하기 위해 초기화합니다.
-                    
-                    for s_prime in range(n):  # 가능한 모든 다음 상태에 대해 반복합니다.
-                        for t_prime in range(len(t)):  # 가능한 모든 다음 통신 타입에 대해 반복합니다.
-                            idx_prime = get_index(s_prime, t_prime)
-                            transition_prob = P(s_prime, state, a, t_prime, t_state)  # 상태 전이 확률을 계산합니다.
-                            reward = s(state, a, t_state)  # 보상을 계산합니다.
-                            expected_value += transition_prob * (reward + gamma * v[idx_prime])  # 기대 가치를 갱신합니다.
+        print('egging :', egging)
+        print('pushing :', pushing)
+        print('check :', check)
 
-                            if expected_value > v_new:
-                                v_new = expected_value  # 새로운 가치를 갱신합니다.
-                                policy[idx] = a  # 최적 정책을 갱신합니다.
-                
-                v[idx] = v_new  # 가치 배열을 새로운 가치로 갱신합니다.
-                delta = max(delta, abs(v_old - v[idx]))  # 변화량을 계산하여 갱신합니다.
+        if check[0] >= check[1] :
+            
+            policy[0] = 3
+        else :
+            policy[0] = 1
+
+        print('이하 policy')
+        print(policy[:len(policy) // 2])
+        print(policy[len(policy) // 2 :])
+
+        v[0] = sum(egging) + sum(pushing)
+
+        
+        if limit >= v[0] - temp :
+            break
+        
+        i += 1
+        print()
+        print('------------------------------')
+        print()
+
+    i = 0
+
+    while True :
+        print('v[1]진행중')
+        print(i, '번째 반복')
+        temp = v[1]
+        
+        egging = []
+
+        egging.append(reward(1, 0, 0) + (1 - lama) * P(1, 1, 0, 0, 0) * v[1]) # egg, c, n` = n
+        egging.append(reward(1, 0, 0) + (1 - lama) * P(2, 1, 0, 0, 0) * v[1 + 1]) # egg, c, n` = n + 1
+        egging.append(reward(1, 0, 0) + (1 - lama) * P(1, 1, 0, 1, 0) * v[1 + (num_states // 2)]) # egg, w, n` = n
+        egging.append(reward(1, 0, 0) + (1 - lama) * P(2, 1, 0, 1, 0) * v[1 + (num_states // 2) + 1]) # egg, w, n` = n + 1
+
+        pushing = []
+        pushing.append(reward(1, 1, 0) + (1 - lama) * P(0, 1, 1, 0, 0) * v[0]) # push, c, n` = n = 0
+        pushing.append(reward(1, 1, 0) + (1 - lama) * P(0, 1, 1, 1, 0) * v[0 + (num_states // 2)]) # push, w, n` = n = 0
+        
+        check = []
+        check.append(sum(egging)/len(egging))
+        check.append(sum(pushing) / len(pushing))
+
+        print('egging :', egging)
+        print('pushing :', pushing)
+        print('check :', check)
+
+        policy[1] = 3 if check[0] > check[1] else 1
+
+        print('이하 policy')
+        print(policy[:len(policy) // 2])
+        print(policy[len(policy) // 2 :])
+
+        v[1] = sum(egging) + sum(pushing)
+
+        if limit >= v[1] - temp :
+            break
+        i += 1
+        print()
+        print('------------------------------')
+        print()
+
+    while True :
+        print('v[2]진행중')
+        print(i, '번째 반복')
+        temp = v[2]
+        
+        egging = []
+
+        egging.append(reward(2, 0, 0) + (1 - lama) * P(2, 2, 0, 0, 0) * v[2]) # egg, c, n` = n
+        egging.append(reward(2, 0, 0) + (1 - lama) * P(3, 2, 0, 0, 0) * v[2]) # egg, c, n` = n + 1
+        '''
+        이거 수정이 좀 필요함
+        0.0.0
+        0.0.0
+        인 상황인데 오른쪽 끝자락에 있는 차례때 num_states // 2 + 1로 접근하니까 인덱스 아웃남
+        이걸 뭐 if나 try로 잡아둬야 할듯
+        '''
+        egging.append(reward(2, 0, 0) + (1 - lama) * P(2, 2, 0, 1, 0) * v[2 + (num_states // 2)]) # egg, w, n` = n
+        egging.append(reward(2, 0, 0) + (1 - lama) * P(3, 2, 0, 1, 0) * v[2 + (num_states // 2) + 1]) # egg, w, n` = n + 1
+
+        pushing = []
+        pushing.append(reward(2, 1, 0) + (1 - lama) * P(0, 2, 1, 0, 0) * v[0]) # push, c, n` = n = 0
+        pushing.append(reward(2, 1, 0) + (1 - lama) * P(0, 2, 1, 1, 0) * v[num_states // 2]) # push, w, n` = n = 0
+        
+        check = []
+        check.append(sum(egging)/len(egging))
+        check.append(sum(pushing) / len(pushing))
+
+        print('egging :', egging)
+        print('pushing :', pushing)
+        print('check :', check)
+
+        policy[2] = 3 if check[0] > check[1] else 1
+
+        print('이하 policy')
+        print(policy[:len(policy) // 2])
+        print(policy[len(policy) // 2 :])
+
+        v[2] = sum(egging) + sum(pushing)
+
+        if limit >= v[2] - temp :
+            break
+        i += 1
+        print()
+        print('------------------------------')
+        print()
+
 
     return v, policy  # 최종 가치 배열과 정책 배열을 반환합니다.
-
 
 def main() :
     V, policy = iteration()
 
-    for i in range(len(policy)) :
-        if i == len(policy) // 2 :
-            print()
-        print(policy[i], end = ' ')
+    # for i in range(len(policy)) :
+    #     if i == len(policy) // 2 :
+    #         print()
+    #     print(policy[i], end = ' ')
 
-    print()
-    print()
+    # print()
+    # print()
 
-    for i in range(len(V)) :
-        if i == len(V) // 2 :
-            print()
-        print(round(V[i], 1), end = ' ')
+    # for i in range(len(V)) :
+    #     if i == len(V) // 2 :
+    #         print()
+    #     print(round(V[i], 1), end = ' ')
     
 if __name__ == '__main__'  :
     main()
