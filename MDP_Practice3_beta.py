@@ -24,9 +24,9 @@ action = [0, 1] # 0 : egg, 1 : push
 t = [0, 1] # 0 : cellular, 1 : wifi
 
 
-n = 3 # 최대 담을 수 있는 데이터의 갯수
+full_n = 3 # 최대 담을 수 있는 데이터의 갯수
 # 셀룰러, 와이파이의 상태에 따른 데이터 갯수?
-states = [[0 for _ in range(n)] for _ in range(len(t))]
+states = [[0 for _ in range(full_n)] for _ in range(len(t))]
 
 # 전이 확률 행렬
 p = [[[0 for _ in range(len(states[0]) + 1)] for _ in range(len(states[0]))] for _ in range(len(t))]
@@ -35,6 +35,11 @@ def P(s_, s, a, t_ ,t) : # 전이 확률 계산
     return P1(s_, s, a) * P2(t_, t)
 
 def P1(n_, n, a) :
+    
+    n = n - full_n if n >= full_n else n
+    n_ = n_ - full_n if n_ >= full_n else n_
+    
+        
     if not(n_ == len(states[0])) :
         if a == 0 : # 액션이 에그 인 경우
             if n_ == n + 1 :
@@ -155,12 +160,13 @@ def g(s, a) :
         return 0
     
 def iteration(gamma=0.9, limit=0.001):
-    num_states = n * len(t)  # 상태 갯수를 계산합니다. 'n'은 상태의 수, 't'는 통신 타입의 수입니다.
+    num_states = full_n * len(t)  # 상태 갯수를 계산합니다. 'n'은 상태의 수, 't'는 통신 타입의 수입니다.
     v = np.zeros(num_states)  # 각 상태의 가치를 저장할 배열을 초기화합니다.
     policy = np.zeros(num_states)  # 각 상태에 대한 최적 정책을 저장할 배열을 초기화합니다.
 
     i = 0
 
+    
     while True :
         print('v[0]진행중')
         print(i, '번째 반복')
@@ -171,12 +177,12 @@ def iteration(gamma=0.9, limit=0.001):
 
         egging.append(reward(0, 0, 0) + (1 - lama) * P(0, 0, 0, 0, 0) * v[0]) # egg, c, n` = n
         egging.append(reward(0, 0, 0) + (1 - lama) * P(1, 0, 0, 0, 0) * v[1]) # egg, c, n` = n + 1
-        egging.append(reward(0, 0, 0) + (1 - lama) * P(0, 0, 0, 1, 0) * v[0 + (num_states // 2)]) # egg, w, n` = n
-        egging.append(reward(0, 0, 0) + (1 - lama) * P(1, 0, 0, 1, 0) * v[0 + (num_states // 2 + 1)]) # egg, w, n` = n + 1
+        egging.append(reward(0, 0, 0) + (1 - lama) * P(0, 0, 0, 1, 0) * v[0 + full_n]) # egg, w, n` = n
+        egging.append(reward(0, 0, 0) + (1 - lama) * P(1, 0, 0, 1, 0) * v[0 + full_n]) # egg, w, n` = n + 1
 
         pushing = []
         pushing.append(reward(0, 1, 0) + (1 - lama) * P(0, 0, 1, 0, 0) * v[0]) # push, c, n` = n = 0
-        pushing.append(reward(0, 1, 0) + (1 - lama) * P(0, 0, 1, 1, 0) * v[0 + (num_states // 2)]) # push, w, n` = n = 0
+        pushing.append(reward(0, 1, 0) + (1 - lama) * P(0, 0, 1, 1, 0) * v[0 + full_n]) # push, w, n` = n = 0
         
         check = []
         check.append(sum(egging)/len(egging))
@@ -209,21 +215,23 @@ def iteration(gamma=0.9, limit=0.001):
 
     i = 0
 
+    for s in 
     while True :
         print('v[1]진행중')
         print(i, '번째 반복')
+
         temp = v[1]
         
         egging = []
-
+        
         egging.append(reward(1, 0, 0) + (1 - lama) * P(1, 1, 0, 0, 0) * v[1]) # egg, c, n` = n
         egging.append(reward(1, 0, 0) + (1 - lama) * P(2, 1, 0, 0, 0) * v[1 + 1]) # egg, c, n` = n + 1
-        egging.append(reward(1, 0, 0) + (1 - lama) * P(1, 1, 0, 1, 0) * v[1 + (num_states // 2)]) # egg, w, n` = n
-        egging.append(reward(1, 0, 0) + (1 - lama) * P(2, 1, 0, 1, 0) * v[1 + (num_states // 2) + 1]) # egg, w, n` = n + 1
+        egging.append(reward(1, 0, 0) + (1 - lama) * P(1, 1, 0, 1, 0) * v[1 + full_n]) # egg, w, n` = n
+        egging.append(reward(1, 0, 0) + (1 - lama) * P(2, 1, 0, 1, 0) * v[1 + full_n + 1]) # egg, w, n` = n + 1
 
         pushing = []
         pushing.append(reward(1, 1, 0) + (1 - lama) * P(0, 1, 1, 0, 0) * v[0]) # push, c, n` = n = 0
-        pushing.append(reward(1, 1, 0) + (1 - lama) * P(0, 1, 1, 1, 0) * v[0 + (num_states // 2)]) # push, w, n` = n = 0
+        pushing.append(reward(1, 1, 0) + (1 - lama) * P(0, 1, 1, 1, 0) * v[0 + full_n]) # push, w, n` = n = 0
         
         check = []
         check.append(sum(egging)/len(egging))
@@ -248,28 +256,72 @@ def iteration(gamma=0.9, limit=0.001):
         print('------------------------------')
         print()
 
+
+    i = 0
+
     while True :
         print('v[2]진행중')
         print(i, '번째 반복')
         temp = v[2]
         
+        idx = 2
+
         egging = []
 
-        egging.append(reward(2, 0, 0) + (1 - lama) * P(2, 2, 0, 0, 0) * v[2]) # egg, c, n` = n
-        egging.append(reward(2, 0, 0) + (1 - lama) * P(3, 2, 0, 0, 0) * v[2]) # egg, c, n` = n + 1
-        '''
-        이거 수정이 좀 필요함
-        0.0.0
-        0.0.0
-        인 상황인데 오른쪽 끝자락에 있는 차례때 num_states // 2 + 1로 접근하니까 인덱스 아웃남
-        이걸 뭐 if나 try로 잡아둬야 할듯
-        '''
-        egging.append(reward(2, 0, 0) + (1 - lama) * P(2, 2, 0, 1, 0) * v[2 + (num_states // 2)]) # egg, w, n` = n
-        egging.append(reward(2, 0, 0) + (1 - lama) * P(3, 2, 0, 1, 0) * v[2 + (num_states // 2) + 1]) # egg, w, n` = n + 1
+        if not(idx == full_n - 1) :  
+            egging.append(reward(idx, 0, 0) + (1 - lama) * P(idx, idx, 0, 0, 0) * v[idx]) # egg, c, n` = n
+            egging.append(reward(idx, 0, 0) + (1 - lama) * P(idx + 1, idx, 0, 0, 0) * v[idx]) # egg, c, n` = n + 1
+            
+            egging.append(reward(idx, 0, 0) + (1 - lama) * P(idx, idx, 0, 1, 0) * v[idx + full_n]) # egg, w, n` = n
+            egging.append(reward(idx, 0, 0) + (1 - lama) * P(idx + 1, idx, 0, 1, 0) * v[idx + full_n + 1]) # egg, w, n` = n + 1
+        else :
+            egging.append(0)
 
         pushing = []
-        pushing.append(reward(2, 1, 0) + (1 - lama) * P(0, 2, 1, 0, 0) * v[0]) # push, c, n` = n = 0
-        pushing.append(reward(2, 1, 0) + (1 - lama) * P(0, 2, 1, 1, 0) * v[num_states // 2]) # push, w, n` = n = 0
+        pushing.append(reward(idx, 1, 0) + (1 - lama) * P(0, idx, 1, 0, 0) * v[0]) # push, c, n` = n = 0
+        pushing.append(reward(idx, 1, 0) + (1 - lama) * P(3, idx, 1, 1, 0) * v[full_n]) # push, w, n` = n = 0
+        
+        check = []
+        check.append(sum(egging) /len(egging))
+        check.append(sum(pushing) / len(pushing))
+
+        print('egging :', egging)
+        print('pushing :', pushing)
+        print('check :', check)
+
+        policy[idx] = 3 if check[0] > check[1] else 1
+
+        print('이하 policy')
+        print(policy[:len(policy) // 2])
+        print(policy[len(policy) // 2 :])
+
+        v[idx] = sum(egging) + sum(pushing)
+
+        if limit >= v[idx] - temp :
+            break
+        i += 1
+
+        print()
+        print('------------------------------')
+        print()
+    
+    i = 0
+
+    while True :
+        print('v[3]진행중')
+        print(i, '번째 반복')
+        temp = v[3]
+        
+        egging = []
+
+        egging.append(reward(3, 0, 1) + (1 - lama) * P(0, 3, 0, 0, 1) * v[3]) # egg, c, n` = n
+        egging.append(reward(3, 0, 1) + (1 - lama) * P(1, 3, 0, 0, 1) * v[3 + 1]) # egg, c, n` = n + 1
+        egging.append(reward(3, 0, 1) + (1 - lama) * P(3, 3, 0, 1, 1) * v[3 - full_n]) # egg, w, n` = n
+        egging.append(reward(3, 0, 1) + (1 - lama) * P(4, 3, 0, 1, 1) * v[3 - full_n + 1]) # egg, w, n` = n + 1
+
+        pushing = []
+        pushing.append(reward(3, 1, 1) + (1 - lama) * P(0, 3, 1, 0, 1) * v[0]) # push, c, n` = n = 0
+        pushing.append(reward(3, 1, 1) + (1 - lama) * P(3, 3, 1, 1, 1) * v[0 + full_n]) # push, w, n` = n = 0
         
         check = []
         check.append(sum(egging)/len(egging))
@@ -279,20 +331,111 @@ def iteration(gamma=0.9, limit=0.001):
         print('pushing :', pushing)
         print('check :', check)
 
-        policy[2] = 3 if check[0] > check[1] else 1
+        policy[3] = 3 if check[0] > check[1] else 1
 
         print('이하 policy')
         print(policy[:len(policy) // 2])
         print(policy[len(policy) // 2 :])
 
-        v[2] = sum(egging) + sum(pushing)
+        v[3] = sum(egging) + sum(pushing)
 
-        if limit >= v[2] - temp :
-            break
-        i += 1
         print()
         print('------------------------------')
         print()
+
+        if limit >= v[3] - temp :
+            break
+        i += 1
+ 
+
+    i = 0
+
+    while True :
+        print('v[4]진행중')
+        print(i, '번째 반복')
+        temp = v[4]
+        
+        egging = []
+
+        egging.append(reward(3, 0, 1) + (1 - lama) * P(1, 4, 0, 0, 1) * v[4 - full_n]) # egg, c, n` = n
+        egging.append(reward(3, 0, 1) + (1 - lama) * P(2, 4, 0, 0, 1) * v[4 - full_n + 1]) # egg, c, n` = n + 1
+        egging.append(reward(3, 0, 1) + (1 - lama) * P(4, 4, 0, 1, 1) * v[4]) # egg, w, n` = n
+        egging.append(reward(3, 0, 1) + (1 - lama) * P(5, 4, 0, 1, 1) * v[4 + 1]) # egg, w, n` = n + 1
+
+        pushing = []
+        pushing.append(reward(3, 1, 1) + (1 - lama) * P(0, 4, 1, 0, 1) * v[4 - full_n]) # push, c, n` = n = 0
+        pushing.append(reward(3, 1, 1) + (1 - lama) * P(3, 4, 1, 1, 1) * v[4]) # push, w, n` = n = 0
+        
+        check = []
+        check.append(sum(egging)/len(egging))
+        check.append(sum(pushing) / len(pushing))
+
+        print('egging :', egging)
+        print('pushing :', pushing)
+        print('check :', check)
+
+        policy[4] = 3 if check[0] > check[1] else 1
+
+        print('이하 policy')
+        print(policy[:len(policy) // 2])
+        print(policy[len(policy) // 2 :])
+
+        v[4] = sum(egging) + sum(pushing)
+
+        print()
+        print('------------------------------')
+        print()
+
+        if limit >= v[4] - temp :
+            break
+        i += 1
+
+    
+    i = 0
+
+    while True :
+        print('v[5]진행중')
+        print(i, '번째 반복')
+        temp = v[5]
+        
+        egging = []
+        idx = 5
+
+        if idx == 5 :
+            egging.append(0)
+        else :
+            egging.append(reward(idx, 0, 0) + (1 - lama) * P(idx, idx, 0, 0, 0) * v[idx]) # egg, c, n` = n
+            egging.append(reward(idx, 0, 0) + (1 - lama) * P(idx + 1, idx, 0, 0, 0) * v[idx]) # egg, c, n` = n + 1
+            
+            egging.append(reward(idx, 0, 0) + (1 - lama) * P(idx, idx, 0, 1, 0) * v[idx + full_n]) # egg, w, n` = n
+            egging.append(reward(idx, 0, 0) + (1 - lama) * P(idx + 1, idx, 0, 1, 0) * v[idx + full_n + 1]) # egg, w, n` = n + 1
+
+        pushing = []
+        pushing.append(reward(5, 1, 1) + (1 - lama) * P(0, 5, 1, 0, 1) * v[0]) # push, c, n` = n = 0
+        pushing.append(reward(5, 1, 1) + (1 - lama) * P(3, 5, 1, 1, 1) * v[0 + full_n]) # push, w, n` = n = 0
+        
+        check = []
+        check.append(sum(egging)/len(egging))
+        check.append(sum(pushing) / len(pushing))
+
+        print('egging :', egging)
+        print('pushing :', pushing)
+        print('check :', check)
+
+        policy[5] = 3 if check[0] > check[1] else 1
+
+        print('이하 policy')
+        print(policy[:len(policy) // 2])
+        print(policy[len(policy) // 2 :])
+
+        v[5] = sum(egging) + sum(pushing)
+        print()
+        print('------------------------------')
+        print()
+        if limit >= v[5] - temp :
+            break
+        i += 1
+
 
 
     return v, policy  # 최종 가치 배열과 정책 배열을 반환합니다.
