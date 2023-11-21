@@ -17,6 +17,8 @@ ld = 0.59
 tau = 1
 
 import numpy as np
+from matplotlib import pyplot as plt
+import random
 
 # SAS의 행동
 action = [0, 1] # 0 : egg, 1 : push
@@ -24,7 +26,7 @@ action = [0, 1] # 0 : egg, 1 : push
 t = [0, 1] # 0 : cellular, 1 : wifi
 
 
-full_n = 3 # 최대 담을 수 있는 데이터의 갯수
+full_n = 5 # 최대 담을 수 있는 데이터의 갯수
 # 셀룰러, 와이파이의 상태에 따른 데이터 갯수?
 states = [[0 for _ in range(full_n)] for _ in range(len(t))]
 
@@ -75,77 +77,10 @@ def P2(t_, t) :
             return 1 - (mw * tau)
         else :
             return 0
-        
-
-def pas() : # 가릴려고 만듦
-    print()
-    # # 0에서 에그를 했는데 0이 되고 셀룰러에서 셀룰러가 될 확률
-    # p[0][0][0] = P(0, 0, 0, 0, 0)
-    # # 0에서 에그를 했는데 0이 되고 셀룰러에서 와이파이가 될 확률
-    # p[0][0][1] = P(0, 0, 0, 1, 0)
-    # # 0에서 에그를 했는데 1이 되고 셀룰러에서 셀룰러가 될 확률
-    # p[0][0][2] = P(1, 0, 0, 0, 0)
-    # # 0에서 에그를 했는데 1이 되고 셀룰러에서 와이파이가 될 확률
-    # p[0][0][3] = P(1, 0, 0, 1, 0)
-
-    # # 1에서 에그를 했는데 1이 되고 셀룰러에서 셀룰러가 될 확률
-    # p[0][1][0] = P(1, 1, 0, 0, 0)
-    # # 1에서 에그를 했는데 1이 되고 셀룰러에서 와이파이가 될 확률
-    # p[0][1][1] = P(1, 1, 0, 1, 0)
-    # # 1에서 에그를 했는데 2이 되고 셀룰러에서 셀룰러가 될 확률
-    # p[0][1][2] = P(2, 1, 0, 0, 0)
-    # # 1에서 에그를 했는데 2이 되고 셀룰러에서 와이파이가 될 확률
-    # p[0][1][3] = P(2, 1, 0, 1, 0)
-
-    # # 2에서 에그를 했는데 2이 되고 셀룰러에서 셀룰러가 될 확률
-    # p[0][2][0] = P(2, 2, 0, 0, 0)
-    # # 2에서 에그를 했는데 2이 되고 셀룰러에서 와이파이가 될 확률
-    # p[0][2][1] = P(2, 2, 0, 1, 0)
-    # # 2에서 에그를 했는데 3이 되고 셀룰러에서 셀룰러가 될 확률
-    # p[0][2][2] = P(3, 2, 0, 0, 0)
-    # # 2에서 에그를 했는데 3이 되고 셀룰러에서 와이파이가 될 확률
-    # p[0][2][3] = P(3, 2, 0, 1, 0)
-
-    # # 0에서 푸쉬를 했는데 0이 되고 셀룰러에서 셀룰러가 될 확률
-    # p[1][0][0] = P(0, 0, 1, 0, 0)
-    # # 0에서 푸쉬를 했는데 0이 되고 셀룰러에서 와이파이가 될 확률
-    # p[1][0][1] = P(0, 0, 1, 1, 0)
-
-    # # 1에서 푸쉬를 했는데 0이 되고 셀룰러에서 셀룰러가 될 확률
-    # p[1][1][0] = P(0, 1, 1, 0, 0)
-    # # 1에서 푸쉬를 했는데 0이 되고 셀룰러에서 와이파이가 될 확률
-    # p[1][1][1] = P(0, 1, 1, 1, 0)
-
-    # # 2에서 푸쉬를 했는데 0이 되고 셀룰러에서 셀룰러가 될 확률
-    # p[1][2][0] = P(0, 2, 1, 0, 0)
-    # # 2에서 푸쉬를 했는데 0이 되고 셀룰러에서 와이파이가 될 확률
-    # p[1][2][1] = P(0, 2, 1, 1, 0)
-
-def setP() : # 전이확률 행렬 생성
-    for k in range(3):  # 두 번째 인덱스가 0, 1, 2로 반복
-        for j in range(4):  # 세 번째 인덱스가 0, 1, 2, 3으로 반복
-            p[0][k][j] = P(k + j//2, k,  0, j % 2, 0)
-
-    for i in range(3):  # 두 번째 인덱스 (0, 1, 2)
-        for j in range(2):  # 세 번째 인덱스 (0, 1)
-            p[1][i][j] = P(0, i, 1, j, 0)
-
-def showP() : # 출력용 함수
-    for i in range(len(p)) :
-        for k in range(len(p[0])) :
-            print(p[i][k])
-            print('sum :', sum(p[i][k]))
-            print()
-        print('---')
 
 
 def reward(s, a, t) : # 보상 함수
     s = s - full_n if t == 1 else s
-    print('-----')
-    print(w * f(s, a, t))
-    print((1 - w) * g(s, a))
-    print(w * f(s, a, t) - (1 - w) * g(s, a))
-    print('-----')
     return (w * f(s, a, t) - (1 - w) * g(s, a))
 
 def f(n, a, t) :
@@ -176,9 +111,6 @@ def iteration():
         temp = 0
         
         while True :
-            print(f'v[{s}]진행중')
-            print(i, '번째 반복')
-    
             temp = v[s]
             
             egging = []
@@ -219,20 +151,28 @@ def iteration():
 
             policy[s] = 0 if check[0] > check[1] else 1
 
-            print('egging :', egging)
-            print('pushing :', pushing)
-            print('check :', check)
+            Printing = True
 
-            print('이하 policy')
-            print(policy[:len(policy) // 2])
-            print(policy[len(policy) // 2 :])
+            
+            # print(f'v[{s}]진행중')
+            # print(i, '번째 반복')
+
+            # print('egging :', egging)
+            # print('pushing :', pushing)
+            # print('check :', check)
+
+            # print('이하 policy')
+            # print(policy[:len(policy) // 2])
+            # print(policy[len(policy) // 2 :])
+
+            # print()
+            # print('------------------------------')
+   
 
             v[s] = sum(egging) + sum(pushing)
             
             
-            print()
-            print('------------------------------')
-            print()
+
 
             if 1 * lama / 2 * (1 - lama) >= abs(v[s] - temp) :
                 break
@@ -242,22 +182,57 @@ def iteration():
 
     return v, policy  # 최종 가치 배열과 정책 배열을 반환합니다.
 
-def main() :
-    V, policy = iteration()
-
-    # for i in range(len(policy)) :
-    #     if i == len(policy) // 2 :
-    #         print()
-    #     print(policy[i], end = ' ')
-
-    # print()
-    # print()
-
-    # for i in range(len(s)) :
-    #     if i == len(s) // 2 :
-    #         print()
-    #     print(round(s[i], 1), end = ' ')
+def testing(policy) :
+    state = 0
+    agg = policy[0]
+    type = 0
+    array = []
+    array.append(P(0, 0, 0, 0, 0))
+    array.append(P(1, 0, 0, 0, 0))
+    array.append(P(1, 0, 0, 1, 0))
+    array.append(P(0, 0, 0, 1, 0))
     
+    print(array)
+
+    print(sum(array))
+    rand = random.random()
+
+    
+    print(policy[:len(policy) // 2])
+    print(policy[len(policy) // 2 :])
+
+    # 0의 위치에서 egg를 하며 셀룰러에 있는게 마음대로 안된 경우?
+    if rand > P(state, state, agg, type, type) :
+        num = random.randint(1, 3)
+        print(num)
+    
+    pass   
+
+def main() :
+    v, policy = iteration()
+    
+
+    testing(policy)
+
+    # x = np.arange(-10, 11, 1)  # X-axis from -10 to 10
+    # y = x  # Y-axis from -10 to 10
+
+    # plt.figure(figsize=(8, 6))
+    # plt.plot(x, y)  # Plot a line where y = x
+    # plt.xlim(0, 10)
+    # plt.ylim(0, 10)
+    # plt.xlabel('X-axis')
+    # plt.ylabel('Y-axis')
+    # plt.title('Graph with X and Y axis from -10 to 10')
+
+    # plt.grid(True)
+    # plt.show()
+
+    # setP()
+    # showP()
+
+    
+
 if __name__ == '__main__'  :
     main()
 
