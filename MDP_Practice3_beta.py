@@ -30,6 +30,8 @@ full_n = 5 # 최대 담을 수 있는 데이터의 갯수
 # 셀룰러, 와이파이의 상태에 따른 데이터 갯수?
 states = [[0 for _ in range(full_n)] for _ in range(len(t))]
 
+record = 10 # 그래프에서 저장할 단위
+
 # 전이 확률 행렬
 p = [[[0 for _ in range(len(states[0]) + 1)] for _ in range(len(states[0]))] for _ in range(len(t))]
 
@@ -40,23 +42,23 @@ def P1(n_, n, a) :
     
     n = n - full_n if n >= full_n else n
     n_ = n_ - full_n if n_ >= full_n else n_
-    
-        
-    if not(n_ == len(states[0])) :
-        if a == 0 : # 액션이 에그 인 경우
+         
+    if  a == 0 :
+        if n < full_n : # 액션이 에그 인 경우
             if n_ == n + 1 :
                 return lamu * tau
             elif n_ == n :
                 return 1 - (lamu * tau)
             else :
                 return 0
-            
-        elif a == 1 :
+        else :
+            return 0
+    elif a == 1 :        
+        if  n != 0 :
             if n_ == 0 :
-                return 0
-            else :
                 return 1
-        
+            else :
+                return 0
         else :
             return 0
     else :
@@ -151,88 +153,292 @@ def iteration():
 
             policy[s] = 0 if check[0] > check[1] else 1
 
-            Printing = True
-
-            
-            # print(f'v[{s}]진행중')
-            # print(i, '번째 반복')
-
-            # print('egging :', egging)
-            # print('pushing :', pushing)
-            # print('check :', check)
-
-            # print('이하 policy')
-            # print(policy[:len(policy) // 2])
-            # print(policy[len(policy) // 2 :])
-
-            # print()
-            # print('------------------------------')
-   
-
             v[s] = sum(egging) + sum(pushing)
             
-            
-
-
             if 1 * lama / 2 * (1 - lama) >= abs(v[s] - temp) :
                 break
 
             i += 1
 
 
-    return v, policy  # 최종 가치 배열과 정책 배열을 반환합니다.
+    return policy  # 최종 정책 배열을 반환합니다.
 
-def testing(policy) :
+def ops_testing(policy) :
     state = 0
-    agg = policy[0]
+
     type = 0
+
+    re = 0
+
     array = []
-    array.append(P(0, 0, 0, 0, 0))
-    array.append(P(1, 0, 0, 0, 0))
-    array.append(P(1, 0, 0, 1, 0))
-    array.append(P(0, 0, 0, 1, 0))
-    
-    print(array)
+    array.append(P(state, state, 0, 0, type))
+    array.append(P(state + 1, state, 0, 0, type))
+    array.append(P(state, state, 0, 1, type))
+    array.append(P(state + 1, state, 0, 1, type))
 
-    print(sum(array))
-    rand = random.random()
+    i = 0
 
-    
-    print(policy[:len(policy) // 2])
-    print(policy[len(policy) // 2 :])
+    result = []
 
-    # 0의 위치에서 egg를 하며 셀룰러에 있는게 마음대로 안된 경우?
-    if rand > P(state, state, agg, type, type) :
-        num = random.randint(1, 3)
-        print(num)
+    while True :
+        rand = random.random()
+        ac = policy[state]
+        
+        re += reward(state, ac, type)
+
+        # 최적 정책이 egg인 경우
+        if policy[state] == 0 :
+
+            array = []
+            array.append(P(state, state, 0, 0, type))
+            array.append(P(state + 1, state, 0, 0, type))
+            array.append(P(state, state, 0, 1, type))
+            array.append(P(state + 1, state, 0, 1, type))
+
+            # 0 -> 0
+            if rand < array[0] :
+                state = state if state < full_n else state - full_n
+                type = type if state < full_n else 0
+
+            # 0 -> 1
+            elif rand < sum(array[0 : 2]) :
+                state = state + 1 if state < full_n else state - full_n + 1
+                type = type if state < full_n else 0
+
+            # 0 -> len(policy) // 2
+            elif rand < sum(array[0 : 3]) :
+                state = state + len(policy) // 2 if state < full_n else state
+                type = 1
+
+            # 0 -> len(policy) // 2 + 1
+            elif rand < sum(array) :
+                state = state + len(policy) // 2 + 1 if state < full_n else state
+                type = 1
+            
+            else :
+                print('흠..')
+
+        # 현재 상태의 최적 정책이 push인 경우
+        elif policy[state] == 1 :
+            array = []
+            array.append(P(0, state, 1, 0, type))
+            array.append(P(full_n, state, 1, 1, type))
+
+            if rand > array[0] :
+                state = 0
+                type = 0
+
+            else :
+                state = full_n
+                type = 1
+
+        if i % record == 0:
+            result.append(round(re, 1))
+            
+        i += 1
+        if i == 100 :
+            return result
+        
+
+def push_testing(policy) :
+    state = 0
+
+    type = 0
+
+    re = 0
+
+    array = []
+    array.append(P(state, state, 0, 0, type))
+    array.append(P(state + 1, state, 0, 0, type))
+    array.append(P(state, state, 0, 1, type))
+    array.append(P(state + 1, state, 0, 1, type))
+
+    i = 0
+
+    result = []
+
+    pushing_policy = []
+
+    for i in range(len(policy)) :
+        if i == 0 or i == full_n :
+            pushing_policy.append(0)
+            continue
+        pushing_policy.append(1)
+
+    i = 0
+
+    while True :
+        rand = random.random()
+        ac = pushing_policy[state]
+        
+        re += reward(state, ac, type)
+
+        # 최적 정책이 egg인 경우
+        if pushing_policy[state] == 0 :
+
+            array = []
+            array.append(P(state, state, 0, 0, type))
+            array.append(P(state + 1, state, 0, 0, type))
+            array.append(P(state, state, 0, 1, type))
+            array.append(P(state + 1, state, 0, 1, type))
+
+            # 0 -> 0
+            if rand < array[0] :
+                state = state if state < full_n else state - full_n
+                type = type if state < full_n else 0
+
+            # 0 -> 1
+            elif rand < sum(array[0 : 2]) :
+                state = state + 1 if state < full_n else state - full_n + 1
+                type = type if state < full_n else 0
+
+            # 0 -> len(policy) // 2
+            elif rand < sum(array[0 : 3]) :
+                state = state + len(policy) // 2 if state < full_n else state
+                type = 1
+
+            # 0 -> len(policy) // 2 + 1
+            elif rand < sum(array) :
+                state = state + len(policy) // 2 + 1 if state < full_n else state
+                type = 1
+            
+            else :
+                print('흠..')
+
+        # 현재 상태의 최적 정책이 push인 경우
+        elif policy[state] == 1 :
+            array = []
+            array.append(P(0, state, 1, 0, type))
+            array.append(P(full_n, state, 1, 1, type))
+
+            if rand > array[0] :
+                state = 0
+                type = 0
+
+            else :
+                state = full_n
+                type = 1
+
+        if i % record == 0 :
+            result.append(round(re, 1))
+
+        i += 1
+        if i == 100 :
+            return result
+
+def egg_testing(policy) :
+    state = 0
+
+    type = 0
+
+    re = 0
+
+    array = []
     
-    pass   
+    i = 0
+
+    result = []
+
+    egging_policy = []
+
+    for i in range(len(policy)) :
+        if i == full_n - 1 or i == len(policy) - 1 :
+            egging_policy.append(1)
+            continue
+        egging_policy.append(0)
+    
+    print(egging_policy)
+
+    i = 0
+
+    while True :
+        rand = random.random()
+        ac = egging_policy[state]
+        
+        re += reward(state, ac, type)
+
+        # 최적 정책이 egg인 경우
+        if egging_policy[state] == 0 :
+
+            array = []
+            array.append(P(state, state, 0, 0, type))
+            array.append(P(state + 1, state, 0, 0, type))
+            array.append(P(state, state, 0, 1, type))
+            array.append(P(state + 1, state, 0, 1, type))
+
+            # 0 -> 0
+            if rand < array[0] :
+                state = state if state < full_n else state - full_n
+                type = type if state < full_n else 0
+
+            # 0 -> 1
+            elif rand < sum(array[0 : 2]) :
+                state = state + 1 if state < full_n else state - full_n + 1
+                type = type if state < full_n else 0
+
+            # 0 -> len(policy) // 2
+            elif rand < sum(array[0 : 3]) :
+                state = state + len(policy) // 2 if state < full_n else state
+                type = 1
+
+            # 0 -> len(policy) // 2 + 1
+            elif rand < sum(array) :
+                state = state + len(policy) // 2 + 1 if state < full_n else state
+                type = 1
+            
+            else :
+                print('흠..')
+
+        # 현재 상태의 최적 정책이 push인 경우
+        elif policy[state] == 1 :
+            array = []
+            array.append(P(0, state, 1, 0, type))
+            array.append(P(full_n, state, 1, 1, type))
+
+            if rand > array[0] :
+                state = 0
+                type = 0
+
+            else :
+                state = full_n
+                type = 1
+
+        if i % record == 0 :
+            result.append(round(re, 1))
+
+        i += 1
+        if i == 100 :
+            return result
+
+
 
 def main() :
-    v, policy = iteration()
+    policy = iteration()
     
+    ops_result = ops_testing(policy)
 
-    testing(policy)
+    push_result = push_testing(policy)
 
-    # x = np.arange(-10, 11, 1)  # X-axis from -10 to 10
-    # y = x  # Y-axis from -10 to 10
+    egg_result = egg_testing(policy)
 
-    # plt.figure(figsize=(8, 6))
-    # plt.plot(x, y)  # Plot a line where y = x
-    # plt.xlim(0, 10)
-    # plt.ylim(0, 10)
-    # plt.xlabel('X-axis')
-    # plt.ylabel('Y-axis')
+    x = ops_result  # X-axis from -10 to 10
+    time = range(1, len(x) + 1)  # Y-axis from -10 to 10
+    x2 = push_result
+    x3 = egg_result
+
+    plt.figure(figsize=(8, 6))
+    plt.plot(time, x, marker='o', color = 'blue', label = 'ops')
+    plt.plot(time, x2, marker='x', color='red', label='push')
+    plt.plot(time, x3, marker='*', color='green', label='egg')
+    plt.xlim(0, 10)
+    
+    plt.xlabel('Simulation time')
+    plt.ylabel('Exptected total reward')
     # plt.title('Graph with X and Y axis from -10 to 10')
 
-    # plt.grid(True)
-    # plt.show()
-
-    # setP()
-    # showP()
-
+    plt.grid(True)
+    plt.legend()
+    plt.show()
     
-
 if __name__ == '__main__'  :
     main()
-
